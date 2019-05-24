@@ -1,0 +1,73 @@
+●data/input/list_1.json
+{
+"key_1": "11111",
+"key_2": "22222",
+"key_3": "33333"
+}
+●data/mapping/mapping.json
+{
+"key_1": "0",
+"key_2": "0"
+}
+●data/output/list_1.json
+{
+'key_1': '0',
+ 'key_2': '0',
+ 'key_3': '33333'
+}
+●03_DataMigration.py
+##実施
+##エラー処理
+
+import json
+from collections import OrderedDict
+import pprint
+import os
+
+
+### 設定 ###
+# マッピングファイル
+MAP_PATH = 'data/mapping/mapping.json'
+# inputフォルダ
+INPUT_PATH = 'data/input'
+# outputフォルダ
+OUTPUT_PATH = 'data/output'
+
+### 対象データへの置換処理の実行 ###
+# マッピングデータ読込
+file_map = open(MAP_PATH)
+dict_map = json.load(file_map)
+
+
+### 対象データへの処理 ###
+# ルートフォルダ配下のjsonファイル(サブフォルダ含む)に対して処理を実行
+def process(path):
+    if os.path.isdir(path):
+        files = os.listdir(path)
+        for file in files:
+            process(path + "\\" + file)
+    else:
+        base, ext = os.path.splitext(path)
+        if ext == '.json':
+            replace(path)
+
+
+### 置換処理 ###
+# マッピングデータに基づき、固定値を設定
+def replace(path):
+    file_input = open(path)
+    dict_input = json.load(file_input)
+    dict_output = dict_input
+    for dict_map_key in dict_map:
+        dict_output.update({dict_map_key:dict_map[dict_map_key]})
+    output(dict_output,path)
+
+
+### ファイル出力 ###
+def output(file,path):
+    with open(OUTPUT_PATH + "\\" + os.path.basename(path), mode='w') as f:
+        pprint.pprint(file, stream=f)
+
+
+# 処理実行
+process(INPUT_PATH)
