@@ -1,0 +1,81 @@
+●data/input/list_1.json
+{
+"UPDATE_USER_ID": "11111",
+"UPDATE_USER": "xxx"
+}
+●data/mapping/mapping.json
+{
+"No1":
+{"USER_ID": "11111","USER": "FujiIchiro"},
+"No2":
+{"USER_ID": "22222","USER": "FujiJiro"},
+"No3":
+{"USER_ID": "33333","USER": "FujiSaburo"}
+}
+●data/output/list_1.json
+{
+'UPDATE_USER_ID': '11111', 
+'UPDATE_USER': 'FujiIchiro'
+}
+●01_DataMigration.py
+import json
+from collections import OrderedDict
+import pprint
+import os
+
+### 設定 ###
+# マッピングファイル
+MAP_PATH = 'data/mapping/mapping.json'
+# inputフォルダ
+INPUT_PATH = 'data/input'
+# outputフォルダ
+OUTPUT_PATH = 'data/output'
+
+### 対象データへの置換処理の実行 ###
+# マッピングデータ読込
+file_map = open(MAP_PATH)
+dict_map = json.load(file_map)
+
+### マッピングの紐づけ ###
+# マッピングデータの属性キー(対象データの属性キーと同一のもの)
+key_map = 'USER_ID'
+# 対象データの属性キー(マッピングデータの属性キーと同一のもの)
+key_data = 'UPDATE_USER_ID'
+# マッピングデータの値(この値で対象データを置換する)
+val_map = 'USER'
+# 対象データの値(この値がマッピングデータで置換される)
+val_data = 'UPDATE_USER'
+
+
+### 対象データへの処理 ###
+# ルートフォルダ配下のjsonファイル(サブフォルダ含む)に対して処理を実行
+def process(path):
+    if os.path.isdir(path):
+        files = os.listdir(path)
+        for file in files:
+            process(path + "\\" + file)
+    else:
+        base, ext = os.path.splitext(path)
+        if ext == '.json':
+            replace(path)
+
+
+### 置換処理 ###
+# マッピングデータに基づき、値を置換
+def replace(path):
+    file_list = open(path)
+    dict_list = json.load(file_list)
+    for dict_map_key in dict_map:
+        if dict_list.get(key_data) == dict_map.get(dict_map_key).get(key_map):
+            dict_list[val_data] = dict_map.get(dict_map_key).get(val_map)
+            str_list = str(dict_list)
+            output(str_list,path)
+
+### ファイル出力 ###
+def output(file,path):
+    with open(OUTPUT_PATH + "\\" + os.path.basename(path), mode='w') as f:
+        f.write(file)
+
+
+# 処理実行
+process(INPUT_PATH)
